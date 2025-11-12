@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hogsite</title>
+  <style>
+    :root{
+      --bg:#0f1115; --panel:#151922; --panel-2:#1a2030; --text:#e9ecf1;
+      --muted:#bcc5d6; --accent:#4da3ff; --accent-2:#6dd3ff;
+      --border:#2a3346; --success:#2fbf71; --danger:#ff4d4d; --warn:#ffc14d;
+      --scroll-track:#0c1019; --scroll-thumb:#2b3650; --scroll-thumb-hover:#3a4a6e;
+    }
+    body.halloween{
+      --bg:#0f0b08; --panel:#1b1410; --panel-2:#241710; --text:#ffeedd;
+      --muted:#ffd6b3; --accent:#ff8a00; --accent-2:#ffb347; --border:#3a281c;
+      --success:#39d98a; --danger:#ff5c5c; --warn:#ffb84d;
+      --scroll-track:#1b120b; --scroll-thumb:#3b2716; --scroll-thumb-hover:#56351e;
+    }
+
+    *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;user-select:none}
+    body{background:linear-gradient(180deg,#0b0d12 0%,var(--bg) 100%);color:var(--text);display:flex;flex-direction:column;min-height:100vh}
+    a{text-decoration:none;color:inherit}
+
+    header{border-bottom:2px solid var(--border);background:var(--panel);padding:0.8rem 1.2rem;display:grid;grid-template-columns:220px 1fr 460px;gap:1rem;align-items:center;}
+    .logo{font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+    .logo span{color:var(--accent)}
+    .topnav{display:flex;gap:1rem}
+    .topnav a{padding:.5rem .7rem;border:2px solid transparent;transition:.15s;font-weight:600;color:var(--muted)}
+    .topnav a:hover{border-color:var(--border);color:var(--text)}
+
+    .actions{display:flex;justify-content:flex-end;align-items:center;gap:.6rem}
+    .btn{padding:.5rem .8rem;border:2px solid var(--border);background:var(--panel-2);cursor:pointer;font-weight:700;transition:.15s;white-space:nowrap;color:#fff}
+    .btn:hover{border-color:var(--accent)}
+    .btn.primary{border-color:var(--accent);background:var(--accent);color:#fff}
+    .btn.ghost{background:transparent;border-color:var(--border);color:#fff}
+    .btn.disabled{opacity:.5;pointer-events:none}
+    .coins{display:flex;align-items:center;gap:.4rem;border:2px solid var(--accent);padding:.45rem .8rem;background:#0b0f18}
+    .coins .val{font-weight:800;color:var(--accent)}
+    .avatar{width:36px;height:36px;border:2px solid var(--border);display:grid;place-items:center;background:var(--panel-2);font-weight:800;color:#fff}
+
+    .layout{display:grid;grid-template-columns:220px 1fr 300px;gap:1rem;max-width:1300px;margin:1.2rem auto;padding:0 1.2rem;width:100%}
+    .panel{background:var(--panel);border:2px solid var(--border)}
+    .side{display:flex;flex-direction:column;gap:.6rem;padding:.8rem}
+    .side .btn{justify-content:space-between}
+    .side .btn .tag{font-size:.75rem;color:var(--muted)}
+
+    .hero{padding:1.2rem;border-bottom:2px solid var(--border);background:linear-gradient(90deg,#121726,#0f1115)}
+    body.halloween .hero{background:linear-gradient(90deg,#20130a,#140d08)}
+    .hero h2{font-size:1.6rem;margin-bottom:.4rem}
+    .hero p{color:var(--muted)}
+    .hero .sub{margin-top:.35rem;color:var(--accent-2);font-weight:600}
+
+    .banner{display:none}
+    body.halloween .banner{display:block;background:linear-gradient(90deg,#2a1807,#1a0f05);border-bottom:2px solid var(--border);padding:.6rem 1.2rem;color:#ffd8a6;font-weight:700}
+
+    .games{padding:1rem}
+    .games-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
+    .arrow-buttons{display:flex;gap:.4rem}
+    .games-row{display:flex;gap:.8rem;overflow-x:auto;scroll-behavior:smooth;padding-bottom:.6rem}
+
+    .card{min-width:260px;border:2px solid var(--border);background:var(--panel-2);display:flex;flex-direction:column}
+    .card .thumb{height:120px;background:#0d1322;border-bottom:2px solid var(--border);display:grid;place-items:center;font-weight:800;color:var(--accent)}
+    body.halloween .card .thumb{background:#2b190a}
+    .card .body{padding:.8rem;display:flex;flex-direction:column;gap:.5rem}
+    .tagline{color:var(--muted);font-size:.95rem}
+
+    .widget{padding:.8rem;border-bottom:2px solid var(--border)}
+    .widget:last-child{border-bottom:none}
+    .kpi{display:flex;gap:.6rem}
+    .kpi .box{flex:1;border:2px solid var(--border);background:var(--panel-2);padding:.6rem;text-align:center}
+    .kpi .val{font-weight:800}
+    .news li{border-top:2px solid var(--border);padding:.5rem 0}
+    .news li:first-child{border-top:none}
+    .tip{font-size:.9rem;color:var(--muted)}
+
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;justify-content:center;align-items:center;padding:1rem}
+    .overlay.active{display:flex}
+    .modal{width:min(800px,95vw);background:var(--panel);border:2px solid var(--border)}
+    .modal .head{padding:1rem;border-bottom:2px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .modal .content{padding:1rem}
+    .x{cursor:pointer;border:2px solid var(--border);padding:.2rem .5rem;background:var(--panel-2);color:#fff}
+    .x:hover{border-color:var(--accent)}
+
+    .game-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-top:.8rem}
+    .tile{background:#101523;border:2px solid var(--border);height:64px;display:grid;place-items:center;font-weight:800;cursor:pointer;transition:.12s;color:#fff}
+    .tile.revealed{background:var(--accent);color:#031225}
+    .tile.gold{background:var(--warn);color:#1d1300}
+    .tile.bad{background:var(--danger);color:#fff}
+    .tile.empty{background:#0e1320;color:#5c6a85}
+    .tile.pumpkin{background:#ff8a00;color:#2d1200;border-color:#d56a00}
+    .status{margin-top:.6rem;color:var(--muted)}
+
+    footer{border-top:2px solid var(--border);background:var(--panel);padding:1rem;text-align:center;margin-top:auto;color:var(--muted)}
+
+    .uid-badge{position:fixed; right:14px; bottom:14px; z-index:9999;background:#0f1526; border:2px solid var(--border); padding:.5rem .7rem; color:#9cb8ff;font-size:.85rem; display:flex; gap:.5rem; align-items:center}
+    body.halloween .uid-badge{background:#24150a;color:#ffd9b0}
+    .uid-badge .copy{cursor:pointer;border:2px solid var(--border);padding:.2rem .4rem;background:var(--panel-2);color:#fff}
+    .uid-badge .copy:hover{border-color:var(--accent)}
+
+    .lb-wrap{
+      max-height:460px;overflow:auto;border:2px solid var(--border);background:var(--panel-2)
+    }
+    .lb-table{width:100%;border-collapse:collapse}
+    .lb-table th,.lb-table td{padding:.55rem .7rem;border-bottom:2px solid var(--border);text-align:left;white-space:nowrap}
+    .lb-table thead th{position:sticky;top:0;background:var(--panel);z-index:1}
+
+    .lb-wrap::-webkit-scrollbar{width:10px;height:10px}
+    .lb-wrap::-webkit-scrollbar-track{background:var(--scroll-track)}
+    .lb-wrap::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border:2px solid var(--scroll-track)}
+    .lb-wrap::-webkit-scrollbar-thumb:hover{background:var(--scroll-thumb-hover)}
+    .lb-wrap{scrollbar-width:thin;scrollbar-color:var(--scroll-thumb) var(--scroll-track)}
+  </style>
+</head>
+<body>
+  <div class="banner" id="hBanner">🎃 Halloween-event aktiv! Oransje tema, Quests og eksklusiv GRESSKAR-rute i Tusks!</div>
+
+  <header>
+    <div class="logo">Hog<span>site</span></div>
+    <nav class="topnav">
+      <a href="#">Hjem</a>
+      <a href="#spill">Spill</a>
+      <a href="#" id="openBoard">Leaderboard</a>
+    </nav>
+    <div class="actions">
+      <div class="coins"><span>💰</span> <span class="val" id="coinsVal">0</span></div>
+      <button class="btn" id="dailyBtn">🎁 Daily Bonus</button>
+      <button class="btn ghost" id="autoToggleBtn">🤖 Auto-spill</button>
+      <div class="avatar" id="editName">HS</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="panel side">
+      <button class="btn" id="openInventory">🎒 Inventory <span class="tag" id="invCount">0</span></button>
+      <button class="btn" id="openAchievements">🏆 Achievements <span class="tag" id="achCount">0/8</span></button>
+      <button class="btn" id="openProfile">👤 Profil</button>
+      <button class="btn">❓ Support</button>
+      <button class="btn ghost" id="openHQuests" style="display:none">🎃 Halloween Quests</button>
+    </aside>
+
+    <section class="panel" id="center">
+      <div class="hero">
+        <h2>Velkommen til Hogsite 👋</h2>
+        <p>Hurtige flaksespill med skarpt grensesnitt og tydelig økonomi. Lås opp troféer, kjemp på leaderboard og sett ditt eget preg.</p>
+        <div class="sub">Tusks: 4×4 – GRATIS – 10 klikk – 9 TUSK (+1), 1 GULL (+5), 1 DÅRLIG (−3), 5 TOM (0). På Halloween: 🎃 GRESSKAR-rute!</div>
+      </div>
+
+      <div class="games" id="spill">
+        <div class="games-header">
+          <h3>Alle spill</h3>
+          <div class="arrow-buttons">
+            <button class="btn" id="leftBtn">◀</button>
+            <button class="btn" id="rightBtn">▶</button>
+          </div>
+        </div>
+
+        <div class="games-row" id="gamesRow">
+          <article class="card" id="tusksCard">
+            <div class="thumb">TUSKS</div>
+            <div class="body">
+              <strong>Tusks</strong>
+              <div class="tagline">Gratis! Finn gullloddet – og se opp for det dårlige. Halloween byr på gresskar-bonanza 🎃</div>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <button class="btn primary" id="playNowBtn" disabled>Spill nå</button>
+                <button class="btn" id="playAutoBtn" disabled>🤖 Autospill nå</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="widget">
+        <h4>Daglig bonus</h4>
+        <p class="tip" id="dailyTip">Hent bonusen din én gang per dag.</p>
+        <div class="kpi" style="margin-top:.6rem">
+          <div class="box"><div>Bonus i dag</div><div class="val" id="bonusVal">+3</div></div>
+          <div class="box"><div>Streak</div><div class="val" id="streakVal">…</div></div>
+        </div>
+        <button class="btn" style="margin-top:.6rem" id="dailyBtnSide">🎁 Hent bonus</button>
+      </div>
+      <div class="widget">
+        <h4>Nyheter</h4>
+        <ul class="news" id="newsList">
+          <li>🤖 Autospill fortsetter selv om du lukker spillet.</li>
+          <li>📊 Leaderboard med stabil scroll.</li>
+        </ul>
+      </div>
+      <div class="widget">
+        <h4>Tips</h4>
+        <p class="tip">Spill smart: jag kombinasjoner for achievements – ikke bare gull!</p>
+      </div>
+    </aside>
+  </div>
+
+  <div class="uid-badge" id="uidBadge">
+    <span id="uidText">ID: ...</span>
+    <button class="copy" id="copyUid">Kopier</button>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <footer>© 2025 Hogsite. Alle rettigheter forbeholdt.</footer>
+
+  <!-- ======== APP SCRIPT ======== -->
+  <script type="module">
+    const FORCE_HALLOWEEN = true;
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+    import {
+      getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc,
+      serverTimestamp, collection, query, limit, onSnapshot as onSnapQuery,
+      increment, orderBy
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuUVZCPoaLTtTUHCqx_eBebkLEJKgW_i8",
+      authDomain: "hogsite-76982.firebaseapp.com",
+      projectId: "hogsite-76982",
+      storageBucket: "hogsite-76982.firebasestorage.app",
+      messagingSenderId: "444761248479",
+      appId: "1:444761248479:web:a95ebb6dbe3e79f92acf6a",
+      measurementId: "G-QFVX6GTNFZ"
+    };
+    const app = initializeApp(firebaseConfig);
+    try { getAnalytics(app); } catch {}
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const overlay = document.getElementById('overlay');
+    const coinsVal = document.getElementById('coinsVal');
+    const streakVal = document.getElementById('streakVal');
+    const bonusVal = document.getElementById('bonusVal');
+    const dailyTip = document.getElementById('dailyTip');
+    const newsList = document.getElementById('newsList');
+    const openHQuestsBtn = document.getElementById('openHQuests');
+    const playBtn = document.getElementById('playNowBtn');
+    const playAutoBtn = document.getElementById('playAutoBtn');
+    const autoToggleBtn = document.getElementById('autoToggleBtn');
+
+    // ===== Autospill state (globalt)
+    let autoMode = false;
+    let autoTimer = null; // per runde
+    function updateAutoBtnTexts(){
+      if(autoToggleBtn){
+        autoToggleBtn.textContent = autoMode ? '⏹️ Stopp auto' : '🤖 Auto-spill';
+        autoToggleBtn.classList.toggle('primary', autoMode);
+      }
+      if(playAutoBtn){
+        playAutoBtn.textContent = autoMode ? '⏹️ Stopp autospill' : '🤖 Autospill nå';
+        playAutoBtn.classList.toggle('primary', autoMode);
+      }
+    }
+    function stopAuto(){
+      autoMode = false;
+      if(autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+      updateAutoBtnTexts();
+    }
+
+    // ===== Modal helper (IKKE stopp auto ved lukking, behold DOM)
+    function openModal(title, contentHTML, {show=true} = {}){
+      overlay.innerHTML = `
+        <div class="modal">
+          <div class="head">
+            <strong>${title}</strong>
+            <button class="x" id="closeModal">×</button>
+          </div>
+          <div class="content">${contentHTML}</div>
+        </div>`;
+      if(show){ overlay.classList.add('active'); } else { overlay.classList.remove('active'); }
+      document.getElementById('closeModal').onclick = ()=>{
+        overlay.classList.remove('active'); // bare skjul – ikke stopp auto
+      };
+      overlay.onclick = (e)=>{ if(e.target===overlay){ overlay.classList.remove('active'); } };
+    }
+    function toast(msg){
+      const div = document.createElement('div');
+      div.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#121a2b;border:2px solid var(--border);padding:.6rem 1rem;color:#fff;z-index:9999';
+      div.textContent = msg;
+      document.body.appendChild(div);
+      setTimeout(()=>div.remove(), 1500);
+    }
+    function progressBar(p){
+      return `<div style="height:8px;background:#0e1526;border:1px solid var(--border);margin-top:.35rem">
+        <div style="height:100%;width:${Math.max(0,Math.min(100,p))}%;background:var(--accent)"></div>
+      </div>`;
+    }
+    function formatDuration(sec){
+      sec = Math.max(0, Math.floor(sec||0));
+      const d = Math.floor(sec / 86400);
+      const h = Math.floor((sec % 86400)/3600);
+      const m = Math.floor((sec % 3600)/60);
+      const s = sec % 60;
+      const parts = [];
+      if(d) parts.push(`${d}d`);
+      if(h || parts.length) parts.push(`${h}t`);
+      if(m || parts.length) parts.push(`${m}m`);
+      parts.push(`${s}s`);
+      return parts.join(' ');
+    }
+    function todayKey(){ const d=new Date(); return d.toISOString().slice(0,10); }
+
+    // ===== Halloween
+    function isTodayHalloween(){
+      if(FORCE_HALLOWEEN) return true;
+      const now = new Date();
+      return (now.getMonth()===9 && now.getDate()===31);
+    }
+    const IS_HALLOWEEN = isTodayHalloween();
+    const HALLOWEEN_KEY = 'halloween_' + (new Date().getFullYear());
+
+    if(IS_HALLOWEEN){
+      document.body.classList.add('halloween');
+      document.getElementById('hBanner').style.display='block';
+      bonusVal.textContent = '+10';
+      dailyTip.textContent = 'Halloween-bonus! Ekstra coins i dag 🎃';
+      openHQuestsBtn.style.display = 'block';
+      const li = document.createElement('li');
+      li.textContent = '🎃 Halloween-event live: gresskar-rute, quests og ekstra bonus!';
+      newsList.prepend(li);
+    }
+
+    // ===== Daily
+    const LS_BONUS_DATE='hogsiteDailyDate', LS_STREAK='hogsiteStreak';
+    function canClaim(){ return localStorage.getItem(LS_BONUS_DATE) !== todayKey(); }
+    async function claimDaily(){
+      if(!canClaim()){ toast('Du har allerede hentet dagens bonus.'); return; }
+      const last = localStorage.getItem(LS_BONUS_DATE);
+      let newStreak = 0;
+      const yest = new Date(); yest.setDate(yest.getDate()-1);
+      if(last === yest.toISOString().slice(0,10)) newStreak = (parseInt(localStorage.getItem(LS_STREAK),10)||0) + 1;
+      else newStreak = 1;
+      localStorage.setItem(LS_STREAK,String(newStreak));
+      localStorage.setItem(LS_BONUS_DATE, todayKey());
+      if(userRef){ await updateDoc(userRef, { streak: newStreak, updatedAt: serverTimestamp() }); }
+      await addCoinsTracked(IS_HALLOWEEN ? +10 : +3);
+      toast(`Bonus ${IS_HALLOWEEN?'+10':'+3'} coins!`);
+      updateDailyButtons();
+    }
+    function updateDailyButtons(){
+      const disabled = !canClaim();
+      [document.getElementById('dailyBtn'), document.getElementById('dailyBtnSide')].forEach(b=>{ if(!b) return; b.classList.toggle('disabled', disabled); b.disabled = disabled; });
+    }
+    [document.getElementById('dailyBtn'), document.getElementById('dailyBtnSide')].forEach(b=> b && (b.onclick = claimDaily));
+    updateDailyButtons();
+
+    // ===== Firestore user/state
+    let currentUser = null;
+    let userRef = null;
+    let coinsCache = 0;
+    let achCache = {};
+    let itemsCache = {};
+    let questCache = {};
+    let playSeconds = 0;
+    let gamesPlayed = 0;
+    let lifetimeCoinsEarned = 0;
+    let maxCoinsEver = 0;
+
+    function setCoinsLocalDisplay(v){
+      coinsCache = v;
+      coinsVal.textContent = v;
+      if(v === 67) awardAch('exact_67');
+    }
+    function updateInventoryCount(){
+      const total = Object.values(itemsCache).reduce((a,b)=>a+(+b||0),0);
+      document.getElementById('invCount').textContent = total;
+    }
+    function updateAchCount(){
+      const count = Object.values(achCache).filter(Boolean).length;
+      document.getElementById('achCount').textContent = `${count}/8`;
+    }
+
+    async function ensureUserDoc(uid){
+      userRef = doc(db, "users", uid);
+      const snap = await getDoc(userRef);
+      if(!snap.exists()){
+        await setDoc(userRef, {
+          coins: 50, name: "", ach: {}, items: {}, quests: {},
+          streak: 0, playSeconds: 0, gamesPlayed: 0,
+          lifetimeCoinsEarned: 0, maxCoinsEver: 50,
+          createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+        });
+      }
+      onSnapshot(userRef, (docSnap)=>{
+        const d = docSnap.data() || {};
+        setCoinsLocalDisplay(Number(d.coins||0));
+        achCache = d.ach || {};
+        itemsCache = d.items || {};
+        questCache = d.quests || {};
+        playSeconds = Number(d.playSeconds||0);
+        gamesPlayed = Number(d.gamesPlayed||0);
+        lifetimeCoinsEarned = Number(d.lifetimeCoinsEarned||0);
+        maxCoinsEver = Number(d.maxCoinsEver||0);
+        streakVal.textContent = String(Number(d.streak||0));
+        updateAchCount();
+        updateInventoryCount();
+        document.getElementById('uidText').textContent = 'ID: ' + uid;
+        playBtn.disabled = false;
+        playAutoBtn.disabled = false;
+      });
+    }
+
+    async function addCoinsTracked(delta){
+      if(!userRef) return;
+      setCoinsLocalDisplay(coinsCache + delta);
+      if(delta>0) lifetimeCoinsEarned += delta;
+      maxCoinsEver = Math.max(maxCoinsEver, coinsCache);
+      await updateDoc(userRef, {
+        coins: increment(delta),
+        lifetimeCoinsEarned: delta>0 ? increment(delta) : increment(0),
+        maxCoinsEver: Math.max(maxCoinsEver, coinsCache),
+        updatedAt: serverTimestamp()
+      });
+    }
+
+    async function setUserName(name){
+      name = (name||"").trim();
+      if(!userRef) return;
+      await updateDoc(userRef, { name, updatedAt: serverTimestamp() });
+      try { await updateProfile(auth.currentUser, { displayName: name }); } catch {}
+    }
+
+    // ===== Achievements
+    const ACH_LIST = [
+      { id:'both_gold_bad',    name:'Yin & Yang',         desc:'Få både GULL og DÅRLIG i ett Tusks-spill.' },
+      { id:'perfect_9_plus_gold', name:'Perfekt Tusk',    desc:'Få alle 9 tusks og 1 gull i ett spill.' },
+      { id:'gold_early',       name:'Gull Tidlig',        desc:'Få GULL innen de 3 første klikkene.' },
+      { id:'bad_last_click',   name:'Au, helt sist!',     desc:'Få DÅRLIG på siste klikk i runden.' },
+      { id:'tusk_streak5',     name:'Tusk-kombinasjon',   desc:'Treff 5 vanlige tusks på rad uten Tom/Dårlig.' },
+      { id:'exact_67',         name:'67',                 desc:'Ha nøyaktig 67 coins.' },
+      { id:'halloween_spirit', name:'Halloween Spirit',   desc:'Spill på Halloween 🎃' },
+      { id:'pumpkin_master',   name:'Gresskar-mester',    desc:'Finn gresskar-ruten på Halloween.' }
+    ];
+    function achNameById(id){ return (ACH_LIST.find(x=>x.id===id)?.name)||id; }
+    function awardAch(id){
+      if(achCache[id]) return;
+      achCache[id] = true; updateAchCount();
+      toast('🏆 Achievement: ' + achNameById(id));
+      if(userRef) updateDoc(userRef, { [`ach.${id}`]: true, updatedAt: serverTimestamp() }).catch(console.error);
+    }
+    if(IS_HALLOWEEN) awardAch('halloween_spirit');
+
+    // ===== Items
+    function getItemQty(name){ return Number(itemsCache[name]||0); }
+    async function addItem(name, qty=1){
+      const newQty = getItemQty(name) + qty;
+      itemsCache[name] = newQty; updateInventoryCount();
+      if(userRef) await updateDoc(userRef, { [`items.${name}`]: newQty, updatedAt: serverTimestamp() }).catch(console.error);
+    }
+    document.getElementById('openInventory').onclick = ()=>{
+      const keys = Object.keys(itemsCache);
+      const list = keys.length
+        ? keys.map(k=>`<li><strong>${k}</strong> × ${itemsCache[k]}</li>`).join('')
+        : '<li>Ingen items enda.</li>';
+      openModal('Inventory', `<p>Items du har samlet:</p><ul style="margin:.6rem 0 .2rem 1rem;line-height:1.6">${list}</ul>`);
+    };
+
+    document.getElementById('openAchievements').onclick = ()=>{
+      const list = ACH_LIST.map(x=>{
+        const ok = !!achCache[x.id];
+        return `<div style="display:flex;justify-content:space-between;align-items:center;border:2px solid var(--border);background:${ok?'#12201a':'#101523'};padding:.6rem;margin-bottom:.4rem">
+          <div><strong>${x.name}</strong><div style="color:var(--muted);font-size:.9rem">${x.desc}</div></div>
+          <div class="pill" style="border:2px solid ${ok?'#2fbf71':'var(--border)'};padding:.2rem .5rem;color:#fff">${ok?'Fullført':'Låst'}</div>
+        </div>`;
+      }).join('');
+      openModal('Achievements', list);
+    };
+
+    // ===== Auth
+    signInAnonymously(auth).catch(console.error);
+    onAuthStateChanged(auth, async (user)=>{
+      if(!user) return;
+      currentUser = user;
+      await ensureUserDoc(user.uid);
+      if(IS_HALLOWEEN && !questCache[HALLOWEEN_KEY]) await initHalloweenQuests();
+      if(IS_HALLOWEEN) openHQuestsBtn.style.display='block';
+    });
+    document.getElementById('copyUid').onclick = async ()=>{
+      const id = auth.currentUser?.uid || '...';
+      await navigator.clipboard.writeText(id);
+      toast('Din ID er kopiert.');
+    };
+
+    // ===== Games list piler
+    const rowEl = document.getElementById('gamesRow');
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+    function updateArrows(){
+      const max = rowEl.scrollWidth - rowEl.clientWidth;
+      const disabled = (max<=0);
+      [leftBtn,rightBtn].forEach(b=>{ b.classList.toggle('disabled', disabled); b.disabled = disabled; });
+    }
+    updateArrows();
+    leftBtn.onclick = ()=>rowEl.scrollBy({left:-260,behavior:'smooth'});
+    rightBtn.onclick= ()=>rowEl.scrollBy({left: 260,behavior:'smooth'});
+
+    /* ===== Leaderboard: åpen én gang, oppdater tbody ===== */
+    async function openLeaderboard(){
+      openModal('Leaderboard', `
+        <div class="lb-wrap">
+          <table class="lb-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Spiller</th><th>Coins</th><th>Streak</th><th>Tid spilt</th><th>Spill spilt</th>
+              </tr>
+            </thead>
+            <tbody id="lbBody">
+              <tr><td colspan="6" style="padding:.6rem;color:var(--muted)">Laster …</td></tr>
+            </tbody>
+          </table>
+        </div>
+      `);
+
+      const bodyEl = document.getElementById('lbBody');
+      if(window._lbUnsub) window._lbUnsub();
+
+      const q = query(collection(db,"users"), orderBy("coins", "desc"), limit(500));
+      window._lbUnsub = onSnapQuery(q, (snapshot)=>{
+        const arr = [];
+        snapshot.forEach(d=>{
+          const data = d.data() || {};
+          arr.push({
+            id: d.id,
+            name: (data.name||'').trim() || d.id,
+            coins: Number(data.coins||0),
+            streak: Number(data.streak||0),
+            playSeconds: Number(data.playSeconds||0),
+            gamesPlayed: Number(data.gamesPlayed||0)
+          });
+        });
+        arr.sort((a,b)=>b.coins-a.coins);
+
+        const rows = arr.map((x,idx)=>`
+          <tr>
+            <td>${idx+1}</td>
+            <td>${x.name}</td>
+            <td>${x.coins}</td>
+            <td>${x.streak}</td>
+            <td title="${x.playSeconds} sek">${formatDuration(x.playSeconds)}</td>
+            <td>${x.gamesPlayed}</td>
+          </tr>
+        `).join('');
+
+        if (bodyEl) {
+          bodyEl.innerHTML = rows || `<tr><td colspan="6" style="padding:.6rem;color:var(--muted)">Ingen spillere enda.</td></tr>`;
+        }
+      });
+    }
+    document.getElementById('openBoard').onclick = (e)=>{e.preventDefault(); openLeaderboard();};
+
+    // ===== Halloween quests (uendret)
+    document.getElementById('openHQuests').onclick = ()=> renderHalloweenQuests();
+    async function initHalloweenQuests(){
+      const init = {
+        date: todayKey(),
+        q1:{ count:0, target:1, done:false, claimed:false },
+        q2:{ done:false, claimed:false },
+        q3:{ count:0, target:3, done:false, claimed:false },
+        grandClaimed:false
+      };
+      questCache[HALLOWEEN_KEY] = init;
+      await updateDoc(userRef, { [`quests.${HALLOWEEN_KEY}`]: init, updatedAt: serverTimestamp() });
+    }
+    async function inc(path, delta){ await updateDoc(userRef, { [path]: increment(delta), updatedAt: serverTimestamp() }); }
+    async function setTrue(path){ await updateDoc(userRef, { [path]: true, updatedAt: serverTimestamp() }); }
+
+    function renderHalloweenQuests(){
+      if(!IS_HALLOWEEN){ toast('Halloween Quests er kun tilgjengelig på Halloween.'); return; }
+      const q = questCache[HALLOWEEN_KEY] || {q1:{count:0,target:1,done:false,claimed:false}, q2:{done:false,claimed:false}, q3:{count:0,target:3,done:false,claimed:false}, grandClaimed:false};
+
+      const card = (title, desc, key, rewardHtml)=>{
+        const node = q[key]||{};
+        const done = !!node.done; const claimed = !!node.claimed;
+        let right = '';
+        if(node.target){
+          const c = Number(node.count||0), t = Number(node.target||1);
+          const pct = Math.round((c/t)*100);
+          right = `
+            <div style="text-align:right;min-width:140px">
+              <div style="font-size:.9rem">${c}/${t}</div>
+              ${progressBar(pct)}
+            </div>`;
+        }else{
+          right = `<span class="pill" style="border:2px solid ${done?'#2fbf71':'var(--border)'};padding:.15rem .5rem;margin-right:.4rem">${done?'Ferdig':'0%'}</span>`;
+        }
+        return `
+          <div style="border:2px solid var(--border);background:var(--panel-2);padding:.8rem;margin-bottom:.6rem">
+            <div style="display:flex;gap:.8rem;align-items:center;justify-content:space-between">
+              <div style="flex:1">
+                <strong>${title}</strong>
+                <div style="color:var(--muted);font-size:.92rem">${desc}</div>
+                <div style="margin-top:.3rem;font-size:.9rem">Belønning: ${rewardHtml}</div>
+              </div>
+              <div style="display:flex;gap:.5rem;align-items:center">
+                ${right}
+                <button class="btn ${(!done||claimed)?'disabled':''}" data-claim="${key}">${claimed?'Claimet':'Claim'}</button>
+              </div>
+            </div>
+          </div>`;
+      };
+
+      const allClaimed = (q.q1?.claimed && q.q2?.claimed && q.q3?.claimed);
+      const canGrand = allClaimed && !q.grandClaimed;
+
+      openModal('🎃 Halloween Quests', `
+        ${card('Varm opp', 'Spill 1 runde Tusks i dag.', 'q1', '<strong>+3</strong> coins')}
+        ${card('Tusk-mester', 'Få <strong>7+</strong> TUSK i <em>én</em> runde.', 'q2', '<strong>+5</strong> coins')}
+        ${card('Gresskarjakt', 'Finn <strong>Gresskar</strong>-ruten <strong>3</strong> ganger.', 'q3', '<strong>Gresskar ×1–3</strong>')}
+        <div style="border:2px dashed var(--border);background:transparent;padding:.8rem">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <strong>Stor belønning</strong>
+              <div style="color:var(--muted);font-size:.92rem">Claim alle 3 quests for å få <strong>Gull Gresskar</strong>.</div>
+            </div>
+            <button class="btn ${canGrand?'':'disabled'}" id="grandClaim">${q.grandClaimed?'Claimet':'Claim Gull Gresskar'}</button>
+          </div>
+        </div>
+      `);
+
+      overlay.querySelectorAll('[data-claim]').forEach(btn=>{
+        btn.onclick = async ()=>{
+          const key = btn.getAttribute('data-claim');
+          await claimQuest(key);
+          renderHalloweenQuests();
+        };
+      });
+      const grandBtn = document.getElementById('grandClaim');
+      if(grandBtn){
+        grandBtn.onclick = async ()=>{
+          const qc = questCache[HALLOWEEN_KEY];
+          if(!(qc && qc.q1?.claimed && qc.q2?.claimed && qc.q3?.claimed) || qc.grandClaimed) return;
+          await addItem('Gull Gresskar', 1);
+          qc.grandClaimed = true;
+          await updateDoc(userRef, { [`quests.${HALLOWEEN_KEY}.grandClaimed`]: true, updatedAt: serverTimestamp() });
+          toast('🎃 Stor belønning: Gull Gresskar!');
+          renderHalloweenQuests();
+        };
+      }
+    }
+
+    async function claimQuest(key){
+      if(!IS_HALLOWEEN) return;
+      let q = questCache[HALLOWEEN_KEY];
+      if(!q){ await initHalloweenQuests(); q = questCache[HALLOWEEN_KEY]; }
+      const node = q[key] || {};
+      if(!node.done || node.claimed) return;
+
+      if(key==='q1'){ await addCoinsTracked(+3); }
+      if(key==='q2'){ await addCoinsTracked(+5); }
+      if(key==='q3'){
+        const qty = 1 + Math.floor(Math.random()*3);
+        await addItem('Gresskar', qty);
+      }
+
+      node.claimed = true;
+      await updateDoc(userRef, { [`quests.${HALLOWEEN_KEY}.${key}.claimed`]: true, updatedAt: serverTimestamp() });
+      toast('Belønning claimet!');
+    }
+    async function markQ1Played(){
+      if(!IS_HALLOWEEN) return;
+      let q = questCache[HALLOWEEN_KEY];
+      if(!q){ await initHalloweenQuests(); q = questCache[HALLOWEEN_KEY]; }
+      await inc(`quests.${HALLOWEEN_KEY}.q1.count`, 1);
+      const after = (questCache[HALLOWEEN_KEY]?.q1?.count||0)+1;
+      if(after >= (questCache[HALLOWEEN_KEY]?.q1?.target||1)){
+        await setTrue(`quests.${HALLOWEEN_KEY}.q1.done`);
+      }
+    }
+    async function markQ2Tusks7(){
+      if(!IS_HALLOWEEN) return;
+      let q = questCache[HALLOWEEN_KEY];
+      if(!q){ await initHalloweenQuests(); q = questCache[HALLOWEEN_KEY]; }
+      if(q.q2?.done) return;
+      await setTrue(`quests.${HALLOWEEN_KEY}.q2.done`);
+    }
+    async function markQ3PumpkinFound(){
+      if(!IS_HALLOWEEN) return;
+      let q = questCache[HALLOWEEN_KEY];
+      if(!q){ await initHalloweenQuests(); q = questCache[HALLOWEEN_KEY]; }
+      await inc(`quests.${HALLOWEEN_KEY}.q3.count`, 1);
+      const after = (questCache[HALLOWEEN_KEY]?.q3?.count||0)+1;
+      const target = (questCache[HALLOWEEN_KEY]?.q3?.target||3);
+      if(after >= target){
+        await setTrue(`quests.${HALLOWEEN_KEY}.q3.done`);
+      }
+    }
+
+    // ===== UI-knapper for Tusks
+    document.getElementById('playNowBtn').onclick = ()=> startTusks(false);
+    document.getElementById('playAutoBtn').onclick = ()=>{
+      // Toggle auto uansett
+      autoMode = !autoMode;
+      updateAutoBtnTexts();
+      if(autoMode){
+        // start ny runde i bakgrunnen (ikke tving UI opp)
+        startTusks(true, {forceHeadless:true});
+      }else{
+        stopAuto();
+      }
+    };
+    autoToggleBtn.onclick = ()=>{
+      autoMode = !autoMode;
+      updateAutoBtnTexts();
+      if(autoMode) startTusks(true, {forceHeadless:true}); else stopAuto();
+    };
+    updateAutoBtnTexts();
+
+    // ===== Tusks – GRATIS + Autospill (fortsetter når modal lukkes)
+    async function startTusks(startInAuto, {forceHeadless=false} = {}){
+      if(!userRef){ toast('Laster profil … prøv igjen om 1 sekund.'); return; }
+      if(startInAuto) { autoMode = true; updateAutoBtnTexts(); }
+      if(IS_HALLOWEEN) awardAch('halloween_spirit');
+      if(IS_HALLOWEEN) markQ1Played();
+
+      const gameStart = Date.now();
+
+      // Headless hvis: (autospill aktiv OG overlay ikke synlig) eller tvunget headless
+      const showUI = !forceHeadless && ( !autoMode || overlay.classList.contains('active') );
+      openModal('Tusks', `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem">
+          <div>Forsøk igjen: <strong id="tries">10</strong></div>
+          <div id="autoStatus" style="font-size:.9rem;color:${autoMode?'var(--accent-2)':'var(--muted)'}">${autoMode?'🤖 Autospill aktiv (1 klikk/sek)':'—'}</div>
+        </div>
+        <div class="game-grid" id="grid"></div>
+        <div class="status">${IS_HALLOWEEN ? 'Vanlig +1 • Gull +5 • Dårlig −3 • Tom 0 • 🎃 Gresskar: items!' : 'Vanlig +1 • Gull +5 • Dårlig −3 • Tom 0'}</div>
+        <div style="margin-top:.6rem;display:flex;gap:.5rem">
+          <button class="btn" id="toggleAuto">${autoMode?'⏹️ Stopp autospill':'🤖 Start autospill'}</button>
+        </div>
+      `, {show: showUI});
+
+      const grid = document.getElementById('grid');
+      const triesEl = document.getElementById('tries');
+      const toggleAutoBtn = document.getElementById('toggleAuto');
+      const autoStatus = document.getElementById('autoStatus');
+
+      if(toggleAutoBtn){
+        toggleAutoBtn.onclick = ()=>{
+          autoMode = !autoMode;
+          updateAutoBtnTexts();
+          if(autoStatus){
+            autoStatus.textContent = autoMode ? '🤖 Autospill aktiv (1 klikk/sek)' : '—';
+            autoStatus.style.color = autoMode ? 'var(--accent-2)' : 'var(--muted)';
+          }
+          if(autoMode) startAutoLoop(); else { if(autoTimer){clearInterval(autoTimer); autoTimer=null;} }
+          // Synk kort-knapp også
+          updateAutoBtnTexts();
+        };
+      }
+
+      const idx = Array.from({length:16},(_,i)=>i).sort(()=>Math.random()-0.5);
+      const tusks = new Set(idx.slice(0,9));
+      const gold  = idx[9];
+      const bad   = idx[10];
+      const pumpkin = IS_HALLOWEEN ? idx[11] : null;
+
+      const CLICKABLE_COUNT = IS_HALLOWEEN ? 12 : 11;
+
+      let tries = 10;
+      const revealed = Array(16).fill(false);
+      let revealedNonEmpty = 0;
+
+      let foundGold=false, foundBad=false, badOnLast=false,
+          tuskCombo=0, maxTuskCombo=0, goldClickNo=Infinity, tuskCount=0, foundPumpkin=false;
+
+      // Bygg rutenett i DOM (selv om det kan være skjult)
+      if(grid){
+        for(let i=0;i<16;i++){
+          const t = document.createElement('div');
+          t.className='tile';
+          t.onclick = () => reveal(i, t);
+          grid.appendChild(t);
+        }
+      }
+
+      function finishAndSave(){
+        const elapsed = Math.round((Date.now() - gameStart)/1000);
+        updateDoc(userRef, {
+          gamesPlayed: increment(1),
+          playSeconds: increment(elapsed),
+          updatedAt: serverTimestamp()
+        }).catch(console.error);
+      }
+
+      function endGame(){
+        if(autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+
+        if(foundGold && foundBad) awardAch('both_gold_bad');
+        if(tuskCount===9 && foundGold) awardAch('perfect_9_plus_gold');
+        if(goldClickNo<=3) awardAch('gold_early');
+        if(badOnLast) awardAch('bad_last_click');
+        if(maxTuskCombo>=5) awardAch('tusk_streak5');
+
+        if(IS_HALLOWEEN && tuskCount>=7) markQ2Tusks7();
+        if(IS_HALLOWEEN && foundPumpkin) markQ3PumpkinFound();
+
+        const drops = [];
+        const rand = ()=> Math.random() < (1/3);
+        if(tuskCount>0 && rand()){ addItem('Tusk', 1); drops.push('Tusk'); }
+        if(foundGold && rand()){ addItem('Gull Tusk', 1); drops.push('Gull Tusk'); }
+        if(foundBad && rand()){ addItem('Ond Tusk', 1); drops.push('Ond Tusk'); }
+        if(IS_HALLOWEEN && foundPumpkin){
+          const qty = 1 + Math.floor(Math.random()*5);
+          addItem('Gresskar', qty);
+          drops.push(`Gresskar × ${qty}`);
+          awardAch('pumpkin_master');
+        }
+
+        finishAndSave();
+
+        if(autoMode){
+          // Start ny runde "headless" slik at UI forblir lukket hvis det var lukket
+          setTimeout(()=> startTusks(true, {forceHeadless: !overlay.classList.contains('active')}), 400);
+        }else{
+          openModal('Runden er ferdig', `
+            <p style="margin-bottom:.6rem">Stats oppdatert i skyen.</p>
+            <ul style="margin:.4rem 0 .8rem 1rem;line-height:1.5">
+              <li>Tusks funnet: <strong>${tuskCount}</strong> / 9</li>
+              <li>Gull funnet: <strong>${foundGold?'Ja':'Nei'}</strong></li>
+              <li>Dårlig truffet: <strong>${foundBad?'Ja':'Nei'}</strong></li>
+              ${IS_HALLOWEEN?`<li>Gresskar funnet: <strong>${foundPumpkin?'Ja':'Nei'}</strong></li>`:''}
+              <li>Drops: <strong>${drops.length?drops.join(', '):'Ingen'}</strong></li>
+            </ul>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+              <button class="btn primary" id="replay">Spill igjen</button>
+              <button class="btn" id="closeRes">Lukk</button>
+            </div>
+          `, {show:true});
+          const r=document.getElementById('replay'); if(r) r.onclick = ()=> startTusks(false);
+          const c=document.getElementById('closeRes'); if(c) c.onclick = ()=> overlay.classList.remove('active');
+        }
+      }
+
+      async function reveal(i, tileEl){
+        if(revealed[i] || tries<=0) return;
+        revealed[i] = true;
+        tries--;
+        if(triesEl) triesEl.textContent = tries;
+
+        if(IS_HALLOWEEN && i===pumpkin){
+          if(tileEl){ tileEl.classList.add('pumpkin'); tileEl.textContent='🎃'; }
+          revealedNonEmpty++; foundPumpkin = true; tuskCombo = 0;
+        } else if(i===gold){
+          if(tileEl){ tileEl.classList.add('gold'); tileEl.textContent='GULL'; }
+          await addCoinsTracked(+5);
+          revealedNonEmpty++; foundGold = true;
+          goldClickNo = Math.min(goldClickNo, 10-tries); tuskCombo = 0;
+        } else if(i===bad){
+          if(tileEl){ tileEl.classList.add('bad'); tileEl.textContent='DÅRLIG'; }
+          await addCoinsTracked(-3);
+          revealedNonEmpty++; foundBad = true; tuskCombo = 0;
+          badOnLast = (tries===0);
+        } else if(tusks.has(i)){
+          if(tileEl){ tileEl.classList.add('revealed'); tileEl.textContent='TUSK'; }
+          await addCoinsTracked(+1);
+          revealedNonEmpty++; tuskCount++; tuskCombo++;
+          if(tuskCombo>maxTuskCombo) maxTuskCombo=tuskCombo;
+        } else {
+          if(tileEl){ tileEl.classList.add('empty'); tileEl.textContent='TOM'; }
+          tuskCombo = 0;
+        }
+
+        if(i===bad && tries===0) badOnLast = true;
+        if(tries===0 || revealedNonEmpty===CLICKABLE_COUNT){ endGame(); }
+      }
+
+      function startAutoLoop(){
+        if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
+        autoTimer = setInterval(()=>{
+          if(tries<=0){ clearInterval(autoTimer); autoTimer=null; return; }
+          // Finn en ikke-avslørt rute
+          const candidates = [];
+          for(let k=0;k<16;k++){ if(!revealed[k]) candidates.push(k); }
+          if(candidates.length===0){ clearInterval(autoTimer); autoTimer=null; return; }
+          const pick = candidates[Math.floor(Math.random()*candidates.length)];
+          const tile = grid ? grid.children[pick] : null; // kan være skjult
+          reveal(pick, tile);
+        }, 1000);
+      }
+
+      if(autoMode) startAutoLoop();
+    }
+
+    // ===== Profil
+    document.getElementById('openProfile').onclick = async ()=>{
+      const uid = auth.currentUser?.uid || '...';
+      const snap = currentUser ? await getDoc(doc(db,"users",uid)) : null;
+      const d = snap?.data() || {};
+      const name = d?.name || '';
+
+      const stats = {
+        coins: Number(d?.coins||0),
+        streak: Number(d?.streak||0),
+        playSeconds: Number(d?.playSeconds||0),
+        gamesPlayed: Number(d?.gamesPlayed||0),
+        lifetimeCoinsEarned: Number(d?.lifetimeCoinsEarned||0),
+        maxCoinsEver: Number(d?.maxCoinsEver||0)
+      };
+
+      openModal('Profil', `
+        <p style="margin-bottom:.6rem">Din unike ID: <code>${uid}</code></p>
+        <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.8rem">
+          <input id="nameInput" class="input" style="flex:1;border:2px solid var(--border);background:#0f1320;color:#fff;padding:.5rem" placeholder="Brukernavn" value="${name}">
+          <button class="btn primary" id="saveName">Lagre</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem">
+          <div style="border:2px solid var(--border);background:var(--panel-2);padding:.7rem">
+            <div style="color:var(--muted)">Coins (nå)</div><div style="font-weight:800">${stats.coins}</div>
+          </div>
+          <div style="border:2px solid var(--border);background:var(--panel-2);padding:.7rem">
+            <div style="color:var(--muted)">Streak</div><div style="font-weight:800">${stats.streak}</div>
+          </div>
+          <div style="border:2px solid var(--border);background:var(--panel-2);padding:.7rem">
+            <div style="color:var(--muted)">Tid spilt</div><div style="font-weight:800" title="${stats.playSeconds} sek">${formatDuration(stats.playSeconds)}</div>
+          </div>
+          <div style="border:2px solid var(--border);background:var(--panel-2);padding:.7rem">
+            <div style="color:var(--muted)">Spill spilt</div><div style="font-weight:800">${stats.gamesPlayed}</div>
+          </div>
+          <div style="border:2px solid var(--border);background:var(--panel-2);padding:.7rem">
+            <div style="color:var(--muted)">Totalt tjent coins</div><div style="font-weight:800">${stats.lifetimeCoinsEarned}</div>
+          </div>
+          <div style="border:2px solid var(--border);background:var(--panel-2);padding:.7rem">
+            <div style="color:var(--muted)">Maks coins (rekord)</div><div style="font-weight:800">${stats.maxCoinsEver}</div>
+          </div>
+        </div>
+      `);
+
+      document.getElementById('saveName').onclick = async ()=>{
+        const v = document.getElementById('nameInput').value;
+        await setUserName(v);
+        overlay.classList.remove('active');
+        toast('Brukernavn oppdatert.');
+      };
+    };
+    document.getElementById('editName').onclick = ()=>document.getElementById('openProfile').click();
+
+    // ===== Init
+    document.getElementById('openBoard').onclick = (e)=>{e.preventDefault(); openLeaderboard();};
+    document.getElementById('uidText').textContent = 'ID: (logger inn …)';
+    signInAnonymously(auth).catch(console.error);
+    onAuthStateChanged(auth, async (user)=>{
+      if(!user) return;
+      currentUser = user;
+      await ensureUserDoc(user.uid);
+      if(IS_HALLOWEEN && !questCache[HALLOWEEN_KEY]) await initHalloweenQuests();
+    });
+  </script>
+</body>
+</html>
